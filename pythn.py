@@ -30,6 +30,7 @@ def visualize_expenses():
 
 st.title("Daily Expense Tracker")
 
+# sidebar for adding expenses 
 with st.sidebar:
     st.header('Add Expense')
     date = st.date_input("Date")
@@ -39,6 +40,8 @@ with st.sidebar:
     if st.button('Add'):
         add_expense(date, category, amount, description)
         st.success("Expense Added!")
+
+# sidebar for file operations
         
     st.header('File Operations')
     if st.button('Save Expenses'):
@@ -46,12 +49,27 @@ with st.sidebar:
     if st.button('Load Expenses'):
         load_expenses()
 
+
+# 📥 Download CSV Button
+    if not st.session_state.expenses.empty:
+        csv_data = st.session_state.expenses.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Download Expenses CSV",
+            data=csv_data,
+            file_name='expenses.csv',
+            mime='text/csv'
+        )
+
+# main area for displaying expenses
+
 st.header('Expenses')
 st.write(st.session_state.expenses)
 
 st.header('Visualization')
 if st.button('Visualize Expenses'):
     visualize_expenses()
+
+# sidebar for editing expenses
 
 def edit_expense(index, date, category, amount, description):
     st.session_state.expenses.loc[index, 'Date'] = date
@@ -67,9 +85,10 @@ if not st.session_state.expenses.empty:
 
     st.write("### Edit Selected Expense")
     edit_date = st.date_input("Date", value=pd.to_datetime(selected_expense['Date']))
-    edit_category = st.selectbox('Category', ['Food', 'Transport', 'Entertainment', 'Utilities', 'Other'], index=['Food', 'Transport', 'Entertainment', 'Utilities', 'Other'].index(selected_expense['Category']))
+    edit_category = st.selectbox('Category', ['Food', 'Transport', 'Entertainment', 'Utilities', 'Other'], index=['Food', 'Transport', 'Entertainment', 'Utilities', 'Other'].index(selected_expense['Category']),
+    key="edit_category")
     edit_amount = st.number_input('Amount', min_value=0.0, format="%.2f", value=selected_expense['Amount'])
-    edit_description = st.text_input('Description', value=selected_expense['Description'])
+    edit_description = st.text_input('Description', value=selected_expense['Description'], key="edit_description")
 
     if st.button('Update Expense'):
         edit_expense(selected_index, edit_date, edit_category, edit_amount, edit_description)
@@ -78,4 +97,3 @@ else:
     st.write("No expenses to edit.")
 
 st.write(st.session_state.expenses)
-
